@@ -1,11 +1,8 @@
 {
   "name": "shopee-meta",
   "version": "1.0.0",
-  "description": "Shopee product scraper with ScraperAPI",
+  "description": "Shopee scraper using ScraperAPI with JSON fallback",
   "main": "index.js",
-  "scripts": {
-    "start": "node api/scrape.js"
-  },
   "dependencies": {
     "node-fetch": "^2.6.7"
   }
