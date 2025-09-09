@@ -1,30 +1,48 @@
-// api/scrape.js
+import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
-  try {
-    const { url } = req.query;
-    if (!url) return res.status(400).json({ error: "Missing url param" });
+  const { url } = req.query;
+  if (!url) {
+    return res.status(400).json({ error: "Missing url" });
+  }
 
-    // Fetch the Shopee product page HTML
+  try {
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0", // fake browser agent
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36",
       },
     });
-
     const html = await response.text();
-
-    // Load with cheerio
     const $ = cheerio.load(html);
 
-    // Extract OG tags (this is what WhatsApp reads)
-    const title = $('meta[property="og:title"]').attr("content") || "No title";
-    const image = $('meta[property="og:image"]').attr("content") || "https://via.placeholder.com/300x300.png?text=No+Image";
+    // Try meta tags first
+    let title =
+      $('meta[property="og:title"]').attr("content") ||
+      $('meta[name="twitter:title"]').attr("content");
 
-    res.status(200).json({ title, image });
-  } catch (err) {
-    console.error("Scrape error:", err);
-    res.status(500).json({ error: "Failed to scrape Shopee" });
-  }
-}
+    let image =
+      $('meta[property="og:image"]').attr("content") ||
+      $('meta[name="twitter:image"]').attr("content");
+
+    // If not found, try script JSON
+    if (!title) {
+      $('script[type="application/ld+json"]').each((i, el) => {
+        try {
+          const json = JSON.parse($(el).html());
+          if (json && json.name) {
+            title = json.name;
+          }
+          if (json && json.image) {
+            image = Array.isArray(json.image) ? json.image[0] : json.image;
+          }
+        } catch (e) {}
+      });
+    }
+
+    res.status(200).json({
+      title: title || "No title",
+      image: image || "https://via.placeholder.com/300x300.png?text=No+Image",
+    });
+  } ca
