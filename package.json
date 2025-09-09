@@ -1,0 +1,8 @@
+{
+  "name": "shopee-meta",
+  "version": "1.0.0",
+  "dependencies": {
+    "jsdom": "^24.0.0",
+    "node-fetch": "^3.3.2"
+  }
+}
