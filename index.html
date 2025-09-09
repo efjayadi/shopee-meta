@@ -1,55 +1,54 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Shopee Product Preview</title>
-    <style>
-      body { font-family: Arial, sans-serif; padding: 20px; }
-      img { max-width: 300px; margin-top: 10px; }
-    </style>
-  </head>
-  <body>
-    <h2>Shopee Product Preview</h2>
-    <div id="result">Loading...</div>
-
-    <script>
-     import fetch from "node-fetch";
-import * as cheerio from "cheerio";
-
-export default async function handler(req, res) {
-  try {
-    const url = "https://shopee.co.id/JeStudios-M4X-4x-Formula-1-Champion-F1-Tshirt-Max-Verstappen-i.320523026.28822239039";
-
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-    });
-
-    if (!response.ok) {
-      return res.status(response.status).json({ error: "Failed to fetch product page" });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopee Product Display</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px;
     }
+    img {
+      max-width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
 
-    const html = await response.text();
-    const $ = cheerio.load(html);
+<h1 id="product-title">Loading...</h1>
+<img id="product-image" src="https://via.placeholder.com/300x300.png?text=Loading" alt="Product">
 
-    const title =
-      $('meta[property="og:title"]').attr("content") ||
-      $("title").text() ||
-      "No title";
+<script>
+  // Replace this with your Shopee product link
+  const productUrl = "https://shopee.co.id/JeStudios-M4X-4x-Formula-1-Champion-F1-Tshirt-Max-Verstappen-i.320523026.28822239039";
+  
+  // Your Vercel API endpoint
+  const apiEndpoint = "https://shopee-meta.vercel.app/api/scrape?url=" + encodeURIComponent(productUrl);
 
-    const image =
-      $('meta[property="og:image"]').attr("content") ||
-      "https://via.placeholder.com/300x300.png?text=No+Image";
+  // Fetch product info on page load
+  fetch(apiEndpoint)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("product-title").textContent = data.title;
+      document.getElementById("product-image").src = data.image;
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById("product-title").textContent = "Failed to load product";
+      document.getElementById("product-image").src = "https://via.placeholder.com/300x300.png?text=Error";
+    });
+</script>
 
-    res.status(200).json({ title, image });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error", details: err.message });
-  }
-}
-
-    </script>
-  </body>
+</body>
 </html>
