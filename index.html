@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Shopee Product Preview</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; }
+      img { max-width: 300px; margin-top: 10px; }
+    </style>
+  </head>
+  <body>
+    <h2>Shopee Product Preview</h2>
+    <div id="result">Loading...</div>
+
+    <script>
+      const apiBase = "https://shopee-meta.vercel.app/api/fetchMeta";
+      const productUrl = "https://shopee.co.id/Oscar-Piastri-81-Helmet-Baju-Kaos-Tshirt-Unisex-F1-i.320523026.41367505486";
+
+      async function loadProduct() {
+        const resultDiv = document.getElementById("result");
+        try {
+          const res = await fetch(apiBase + "?url=" + encodeURIComponent(productUrl));
+          const data = await res.json();
+
+          if (data.error) {
+            resultDiv.innerHTML = "<p>Error: " + data.error + "</p>";
+            return;
+          }
+
+          resultDiv.innerHTML = `
+            <h3>${data.title}</h3>
+            <img src="${data.image}" alt="Product image">
+            <p><a href="${data.source}" target="_blank">View on Shopee</a></p>
+          `;
+        } catch (err) {
+          resultDiv.innerHTML = "<p>Fetch failed: " + err.message + "</p>";
+        }
+      }
+
+      loadProduct();
+    </script>
+  </body>
+</html>
