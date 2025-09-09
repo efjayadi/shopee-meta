@@ -1,5 +1,4 @@
 const fetch = require("node-fetch");
-const cheerio = require("cheerio");
 
 module.exports = async (req, res) => {
   const { url } = req.query;
@@ -8,31 +7,23 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36",
-      },
-    });
+    const SCRAPER_API_KEY = "4b95149c1a0a6087cf25d0cd9e02f8ef"; // your key
+    const apiUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(
+      url
+    )}&render=true`;
 
+    const response = await fetch(apiUrl);
     const html = await response.text();
-    const $ = cheerio.load(html);
 
-    const title =
-      $('meta[property="og:title"]').attr("content") ||
-      $('meta[name="twitter:title"]').attr("content") ||
-      "No title";
+    // Extract OG meta tags
+    const ogTitleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
+    const ogImageMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
 
-    const image =
-      $('meta[property="og:image"]').attr("content") ||
-      $('meta[name="twitter:image"]').attr("content") ||
-      "https://via.placeholder.com/300x300.png?text=No+Image";
+    const title = ogTitleMatch ? ogTitleMatch[1] : "No title";
+    const image = ogImageMatch ? ogImageMatch[1] : "https://via.placeholder.com/300x300.png?text=No+Image";
 
     res.status(200).json({ title, image });
   } catch (err) {
-    res.status(500).json({
-      error: "Failed to fetch Shopee page",
-      details: err.message,
-    });
+    res.status(500).json({ error: "Failed to fetch Shopee via ScraperAPI", details: err.message });
   }
 };
