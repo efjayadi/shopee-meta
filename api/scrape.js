@@ -17,32 +17,35 @@ export default async function handler(req, res) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // Try meta tags first
     let title =
       $('meta[property="og:title"]').attr("content") ||
-      $('meta[name="twitter:title"]').attr("content");
+      $('meta[name="twitter:title"]').attr("content") ||
+      null;
 
     let image =
       $('meta[property="og:image"]').attr("content") ||
-      $('meta[name="twitter:image"]').attr("content");
+      $('meta[name="twitter:image"]').attr("content") ||
+      null;
 
-    // If not found, try script JSON
-    if (!title) {
+    // Try application/ld+json
+    if (!title || !image) {
       $('script[type="application/ld+json"]').each((i, el) => {
         try {
-          const json = JSON.parse($(el).html());
-          if (json && json.name) {
+          const jsonText = $(el).html();
+          if (!jsonText) return;
+          const json = JSON.parse(jsonText.trim());
+          if (json && !title && json.name) {
             title = json.name;
           }
-          if (json && json.image) {
+          if (json && !image && json.image) {
             image = Array.isArray(json.image) ? json.image[0] : json.image;
           }
-        } catch (e) {}
+        } catch (e) {
+          // skip invalid JSON instead of crashing
+        }
       });
     }
 
     res.status(200).json({
       title: title || "No title",
-      image: image || "https://via.placeholder.com/300x300.png?text=No+Image",
-    });
-  } ca
+      image: i
